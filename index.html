@@ -3,17 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <title>Player</title>
-  <link rel="stylesheet" href="assets/styles/app.css">
+  <link href='http://fonts.googleapis.com/css?family=Chau+Philomene+One' rel='stylesheet' type='text/css'>
+  <link href="assets/styles/app.css" media="screen, projection" rel="stylesheet" type="text/css" />
 </head>
 <body>
 
-  <div id="playlist"></div>
+  <div id="container">
+    <h1>Play my Songs</h1>
 
+    <ol id="playlist">
+      <p>Drag songs here</p>
+    </ol>
+  </div>
+
+  <script src="//cdnjs.cloudflare.com/ajax/libs/zepto/1.0/zepto.min.js"></script>
   <script src="assets/scripts/playlist.js"></script>
   <script>
-    window.addEventListener('load', function () {
-      myPlayer = new Playlist()
-    });
+    $(function () {
+      new Playlist();
+    })
   </script>
 </body>
 </html>
