@@ -1,9 +1,10 @@
 class Playlist
-  constructor: () ->
+  constructor: ->
     if @checkForFileAPISupport()
       @setElements()
       @createAudioAPIElements()
       @handlers()
+
     else
       alert "Your browser don't support drag and drop, get out of here!"
 
@@ -11,70 +12,68 @@ class Playlist
     typeof window.FileReader is 'function'
 
   setElements: ->
-    @holder = document.getElementById('playlist')
-    @player = document.getElementById('player')
+    @holder = $('#playlist')
+    @player = $('#player')
 
   handlers: ->
     @handleDragOver()
-    @handleDragEnd()
     @handleDragDrop()
     @handlerPlaySong()
 
   handleDragOver: ->
-    @holder.ondragover = (event) ->
-      event.target.className = 'drag-over'
-      false
+    @holder.on 'dragover', (event) =>
+      event.preventDefault()
 
-  handleDragEnd: ->
-    @holder.ondragend = (event) ->
-      event.className = ''
-      false
+      @holder.addClass('drag-over')
 
   handleDragDrop: ->
-    @holder.ondrop = (event) =>
+    @holder.on 'drop', (event) =>
       event.preventDefault()
-      event.target.className = ''
 
-      @populate(event.dataTransfer.files)
+      @populatePlaylist(event.dataTransfer.files)
 
   handlerPlaySong: ->
-    @holder.addEventListener 'click', (event) =>
+    @holder.on 'click', (event) =>
       event.preventDefault()
 
-      if parseInt(event.target.getAttribute('data-song'), 10) > 0
-        @play(event.target.getAttribute('data-song'))
+      songID = $(event.target).data('song')
 
-  populate: (songs) ->
-    @playlist = songs
-    @addSong(song, _i) for song in songs
+      @play(songID)
+
+  populatePlaylist: (songs) ->
+    @storage = songs
+
+    @holder.html('')
+
+    @insertSong(song, _i) for song in songs
+
     @play(0)
-
-  addSong: (song, index) ->
-    if song.type.match(/audio.*/)
-      @holder.innerHTML += '<li><a href="#" data-song="' + index + '">' + @removeExtension(song.name) + '</a></li>'
-
-  removeExtension: (song) ->
-    song.split('.')[0]
 
   play: (songID) ->
     self = @
 
-    unless (@playlist[songID])
+    unless (@storage[songID])
       alert 'Song not found'
 
     else
       @stop()
+
       file = new FileReader()
 
       file.onload = (fileEvent) ->
-        data = fileEvent.target.result
-        self.createAudio(data)
+        self.createAudio(fileEvent.target.result)
 
-      file.readAsArrayBuffer(@playlist[songID])
+      file.readAsArrayBuffer(@storage[songID])
+
+      @removeActiveClass()
+      @holder.find('a.song-' + songID + '').parent().addClass('active')
 
   stop: ->
     @audioSource.stop(0) if @audioSource
     @createAudioAPIElements()
+
+  removeExtension: (song) ->
+    song.split('.')[0]
 
   createAudioAPIElements: ->
     @audioContext = new (window.AudioContext || window.webkitAudioContext)()
@@ -82,6 +81,7 @@ class Playlist
 
   createAudio: (data) ->
     self = @
+
     if (self.audioContext.decodeAudioData)
       self.audioContext.decodeAudioData(data, (buffer) ->
           self.audioSource.buffer = buffer
@@ -91,5 +91,12 @@ class Playlist
         , (e) ->
           alert 'Error loading this file'
         )
+
+  insertSong: (song, index) ->
+    if song.type.match(/audio.*/)
+      @holder.append '<li><a href="#" data-song="' + index + '" class="song-' + index + '">' + @removeExtension(song.name) + '</a></li>'
+
+  removeActiveClass: ->
+    @holder.find('li').removeClass('active')
 
 @Playlist = Playlist
