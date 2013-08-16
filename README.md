@@ -9,4 +9,4 @@ A HTML5 Player that you can drag your songs from your computer and drop into the
 * Test in IE and have some fun :P
 
 # License
-[MIT License] @ Djalma Araújo
+[MIT License](http://zenorocha.mit-license.org/) @ Djalma Araújo
