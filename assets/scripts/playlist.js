@@ -18,84 +18,67 @@
     };
 
     Playlist.prototype.setElements = function() {
-      this.holder = document.getElementById('playlist');
-      return this.player = document.getElementById('player');
+      this.holder = $('#playlist');
+      return this.player = $('#player');
     };
 
     Playlist.prototype.handlers = function() {
       this.handleDragOver();
-      this.handleDragEnd();
       this.handleDragDrop();
       return this.handlerPlaySong();
     };
 
     Playlist.prototype.handleDragOver = function() {
-      return this.holder.ondragover = function(event) {
-        event.target.className = 'drag-over';
-        return false;
-      };
-    };
-
-    Playlist.prototype.handleDragEnd = function() {
-      return this.holder.ondragend = function(event) {
-        event.className = '';
-        return false;
-      };
+      var _this = this;
+      return this.holder.on('dragover', function(event) {
+        event.preventDefault();
+        return _this.holder.addClass('drag-over');
+      });
     };
 
     Playlist.prototype.handleDragDrop = function() {
       var _this = this;
-      return this.holder.ondrop = function(event) {
+      return this.holder.on('drop', function(event) {
         event.preventDefault();
-        event.target.className = '';
-        return _this.populate(event.dataTransfer.files);
-      };
+        return _this.populatePlaylist(event.dataTransfer.files);
+      });
     };
 
     Playlist.prototype.handlerPlaySong = function() {
       var _this = this;
-      return this.holder.addEventListener('click', function(event) {
+      return this.holder.on('click', function(event) {
+        var songID;
         event.preventDefault();
-        if (parseInt(event.target.getAttribute('data-song'), 10) > 0) {
-          return _this.play(event.target.getAttribute('data-song'));
-        }
+        songID = $(event.target).data('song');
+        return _this.play(songID);
       });
     };
 
-    Playlist.prototype.populate = function(songs) {
+    Playlist.prototype.populatePlaylist = function(songs) {
       var song, _i, _len;
-      this.playlist = songs;
+      this.storage = songs;
+      this.holder.html('');
       for (_i = 0, _len = songs.length; _i < _len; _i++) {
         song = songs[_i];
-        this.addSong(song, _i);
+        this.insertSong(song, _i);
       }
       return this.play(0);
-    };
-
-    Playlist.prototype.addSong = function(song, index) {
-      if (song.type.match(/audio.*/)) {
-        return this.holder.innerHTML += '<li><a href="#" data-song="' + index + '">' + this.removeExtension(song.name) + '</a></li>';
-      }
-    };
-
-    Playlist.prototype.removeExtension = function(song) {
-      return song.split('.')[0];
     };
 
     Playlist.prototype.play = function(songID) {
       var file, self;
       self = this;
-      if (!this.playlist[songID]) {
+      if (!this.storage[songID]) {
         return alert('Song not found');
       } else {
         this.stop();
         file = new FileReader();
         file.onload = function(fileEvent) {
-          var data;
-          data = fileEvent.target.result;
-          return self.createAudio(data);
+          return self.createAudio(fileEvent.target.result);
         };
-        return file.readAsArrayBuffer(this.playlist[songID]);
+        file.readAsArrayBuffer(this.storage[songID]);
+        this.removeActiveClass();
+        return this.holder.find('a.song-' + songID + '').parent().addClass('active');
       }
     };
 
@@ -104,6 +87,10 @@
         this.audioSource.stop(0);
       }
       return this.createAudioAPIElements();
+    };
+
+    Playlist.prototype.removeExtension = function(song) {
+      return song.split('.')[0];
     };
 
     Playlist.prototype.createAudioAPIElements = function() {
@@ -123,6 +110,16 @@
           return alert('Error loading this file');
         });
       }
+    };
+
+    Playlist.prototype.insertSong = function(song, index) {
+      if (song.type.match(/audio.*/)) {
+        return this.holder.append('<li><a href="#" data-song="' + index + '" class="song-' + index + '">' + this.removeExtension(song.name) + '</a></li>');
+      }
+    };
+
+    Playlist.prototype.removeActiveClass = function() {
+      return this.holder.find('li').removeClass('active');
     };
 
     return Playlist;
