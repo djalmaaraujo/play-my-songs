@@ -5,7 +5,7 @@ A HTML5 Player that you can drag your songs from your computer and drop into the
 # Roadmap
 
 * Create a Logo for the project
-* Create a decente UI
+* Create a decent UI
 * Test in IE and have some fun :P
 
 # License
